@@ -28,8 +28,14 @@ $(document).ready(function(){
                 id: id
             },
             function (data) {
-                if (data.deleted) alert('deleted = '+ data.deleted);
-                else if(data.error) alert('error = '+ data.error);
+                if (data.affected !== undefined) {
+                    console.log(data.affected + ' rows was removed.');
+                    var loaded = parseInt($('#total').text(), 10) - data.affected;
+                    $('#total').text(loaded);
+                }
+                else if(data.errmsg !== undefined) {
+                    alert('Error: ' + data.errmsg);
+                }
             }
         );
     });

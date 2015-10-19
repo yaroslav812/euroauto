@@ -9,8 +9,19 @@ class AjaxData
         $this->db = Database::getInst();
     }
 
+    /**
+     * Проверка строки на число
+     *
+     * @param $str
+     * @return bool
+     */
+    private function str_is_int($str){
+        $var = intval($str);
+        return ("$str" == "$var");
+    }
+
     public function removeCategory($id){
-        if(!is_int($id)){ //  проверка на SQL инъекцию
+        if(!$this->str_is_int($id)){ //  проверка на SQL инъекцию
             return 0;
         }
         // удаляем категорию + все ее дочерние категории
@@ -32,12 +43,12 @@ class AjaxData
                     JOIN category AS cat ON cat.parent_category_id = tree.id
                 )
                 SELECT id FROM tree
-            )
+            );
         ';
         try {
-            echo json_encode(array('deleted'=>$this->db->exec($sql)));
+            echo json_encode(array('affected'=>$this->db->exec($sql)));
         } catch(Exception $e){
-            echo json_encode(array('error'=>$e->getMessage()));
+            echo json_encode(array('errmsg'=>$e->getMessage()));
         }
     }
 

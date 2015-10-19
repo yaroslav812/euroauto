@@ -10,6 +10,6 @@ switch ($_POST['data']) {
         $ajax->getAllCategories();
         break;
     case 'remove-category':
-        $ajax->removeCategory(555);
+        $ajax->removeCategory($_POST['id']);
         break;
 }
