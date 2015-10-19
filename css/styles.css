@@ -28,11 +28,6 @@
     font-weight:700;
     position:relative
 }
-/*
-.ztree li:hover {
-    background-color:gray;
-}
-*/
 .tree ul li:before {
     content:"";
     display:block;
@@ -52,20 +47,11 @@
 }
 .tree li a {
     text-decoration: none;
-}/*
-.tree li button, .tree li button:active, .tree li button:focus {
-    text-decoration: none;
-    color:#369;
-    border:none;
-    background:transparent;
-    margin:0px 0px 0px 0px;
-    padding:0px 0px 0px 0px;
-    outline: 0;
-}*/
-.dir:hover{
-    text-decoration: underline;
 }
-
+.has-child:hover{
+    text-decoration: underline;
+    cursor: pointer;
+}
 .glyphicon-pencil{
     color: lightblue;
     margin-left: 8px;
@@ -73,9 +59,9 @@
 .glyphicon-remove{
     color: pink;
 }
-.glyphicon-pencil:hover{
+.glyphicon-pencil:hover, .glyphicon-pencil:focus, .glyphicon-pencil:active{
     color: blue;
 }
-.glyphicon-remove:hover{
+.glyphicon-remove:hover, .glyphicon-remove:focus, .glyphicon-remove:active{
     color: red;
 }
