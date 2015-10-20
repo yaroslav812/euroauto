@@ -1,7 +1,8 @@
 $(document).ready(function(){
     // Вешаем событие на кнопку загрузки списка категорий
     $('#button-load-categories').click(function() {
-        ajaxLoadCategories();
+        var filter = $('#filterName').val();
+        ajaxLoadCategories(filter);
     });
 
     // Активация модального окна удаления
@@ -15,41 +16,62 @@ $(document).ready(function(){
 
     // Нажата кнопка удаления категории
     $('#removeModal .btn-danger').click(function(event) {
+        var start_server = Date.now();
         var id = event.target.getAttribute('id-category');
-        // удаляем ветку на клиенте
-        var elem = '#d-'+id;
+
         $('#removeModal').modal('hide');
-        $(elem).slideUp('normal', function() {
-            $(elem).remove();
-        });
+
         // удаляем ветку в базе
         $.post('/euroauto/ajax.php', {
-                data: 'remove-category',
+                action: 'remove-category',
                 id: id
             },
             function (data) {
+                if(data.errmsg !== undefined) {
+                    alert('Error: ' + data.errmsg);
+                    return;
+                }
+                var start_client = Date.now();
+                $('#speed-server-sql').text(data.time + ' ms');
+                $('#speed-server-resp').text((Date.now()-start_server) + ' ms');
                 if (data.affected !== undefined) {
                     console.log(data.affected + ' rows was removed.');
-                    var loaded = parseInt($('#total').text(), 10) - data.affected;
-                    $('#total').text(loaded);
-                }
-                else if(data.errmsg !== undefined) {
-                    alert('Error: ' + data.errmsg);
+                    // Если что-то удалили то удаляем элемент из DOM
+                    if(data.affected > 0) {
+                        var loaded = parseInt($('#total').text(), 10) - data.affected;
+                        $('#total').text(loaded);
+                        // удаляем ветку на клиенте
+                        $('#d-' + id).slideUp('normal', function () {
+                            $('#d-' + id).remove();
+                            $('#speed-client').text((Date.now()-start_client) + ' ms (с учетом анимации)');
+                        });
+                    }
                 }
             }
         );
     });
 
-    ajaxLoadCategories();
+    ajaxLoadCategories('');
 });
 
-function ajaxLoadCategories() {
+function ajaxLoadCategories(filter) {
+    var start_server = Date.now();
+    var action_name = 'get-all-categories';
+    if(filter.length) action_name = 'get-filtered-categories';
+
     $.post('/euroauto/ajax.php', {
-            data: 'get-all-categories'
+            action: action_name,
+            filt: filter
         },
         function (data) {
-            console.time('Tree render time: ');
-            var count = data.length;
+            if(data.errmsg !== undefined) {
+                alert('Error: ' + data.errmsg);
+                return;
+            }
+            $('#speed-server-sql').text(data.time + ' ms');
+            $('#speed-server-resp').text((Date.now()-start_server) + ' ms');
+            var start_client = Date.now();
+            var count = data.dirlist.length;
             var b_edit, b_remove;
             /*
              data[i][0] => id каталога
@@ -60,10 +82,10 @@ function ajaxLoadCategories() {
             $('#dir-place').html('<ul id="dir-list"></ul>');
 
             for (var i=0; i<count; i++){
-                var id   = data[i][0];
-                var pid  = data[i][1];
-                var name = data[i][2];
-                var deep = data[i][3];
+                var id   = data['dirlist'][i][0];
+                var pid  = data['dirlist'][i][1];
+                var name = data['dirlist'][i][2];
+                var deep = data['dirlist'][i][3];
 
                 b_edit   = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
                 b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
@@ -86,13 +108,11 @@ function ajaxLoadCategories() {
                 }
             }
             $('#dir-list').treed(); // Init tree view
-            $('#total').text(data.length); // Вывод кол-ва загруженных категорий
-            console.timeEnd('Tree render time: ');
+            $('#total').text(data.dirlist.length); // Вывод кол-ва загруженных категорий
+            $('#speed-client').text((Date.now()-start_client) + ' ms');
         }
     );
 }
-
-
 
 $.fn.extend({
     treed: function () {

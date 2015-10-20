@@ -65,3 +65,6 @@
 .glyphicon-remove:hover, .glyphicon-remove:focus, .glyphicon-remove:active{
     color: red;
 }
+.mt20{
+    margin-top: 20px;
+}
