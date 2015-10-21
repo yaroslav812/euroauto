@@ -8,18 +8,21 @@ $a = ['Зеркало','Масла','Шины','Диски','Колеса','Гл
 */
 
 $db = Database::getInst();
-
-for($i=1;$i<10;$i++) {
-    $sql = "INSERT INTO category(parent_category_id, name) VALUES(298, 'Очень глубоко №$i');";
-    $upd = 0;
-    try {
-        $upd = $db->exec($sql);
-    } catch (Exception $e) {
-        die('PDO query error: ' . $sql);
+$a = array(326,327,328,329,330,331,332);
+foreach($a as $v) {
+    for ($i = 1; $i < 200; $i++) {
+        //$sql = "INSERT INTO category(parent_category_id, name) VALUES(298, 'Очень глубоко №$i');";
+        $sql = sprintf("INSERT INTO category(parent_category_id, name) VALUES(%d, 'Много-%03d');", $v, $i);
+        $upd = 0;
+        try {
+            $upd = $db->exec($sql);
+        } catch (Exception $e) {
+            die('PDO query error: ' . $sql);
+        }
     }
 }
 
-echo'ok - '.$upd;ш
+echo'ok - '.$upd;123
 //for
 
 

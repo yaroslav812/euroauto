@@ -2,7 +2,8 @@ $(document).ready(function(){
     // Вешаем событие на кнопку загрузки списка категорий
     $('#button-load-categories').click(function() {
         var filter = $('#filterName').val();
-        ajaxLoadCategories(filter);
+        var level = $('#nestingLevel').val();
+        ajaxLoadCategories(filter, level);
     });
 
     // Активация модального окна удаления
@@ -51,17 +52,20 @@ $(document).ready(function(){
         );
     });
 
-    ajaxLoadCategories('');
+    ajaxLoadCategories('', 0);
 });
 
-function ajaxLoadCategories(filter) {
-    var start_server = Date.now();
+function ajaxLoadCategories(filter, level) {
+    $('#dir-place').html('Loading...');
+
     var action_name = 'get-all-categories';
     if(filter.length) action_name = 'get-filtered-categories';
 
+    var start_server = Date.now();
     $.post('/euroauto/ajax.php', {
             action: action_name,
-            filt: filter
+            filt: filter,
+            deep: level
         },
         function (data) {
             if(data.errmsg !== undefined) {
@@ -80,7 +84,9 @@ function ajaxLoadCategories(filter) {
              data[i][3] => deep (глубина)
              */
             $('#dir-place').html('<ul id="dir-list"></ul>');
-
+            var dirList = $('#dir-list'); // directory list item
+           //  var rootFlag = 0;
+            console.time('Init tree');
             for (var i=0; i<count; i++){
                 var id   = data['dirlist'][i][0];
                 var pid  = data['dirlist'][i][1];
@@ -90,16 +96,16 @@ function ajaxLoadCategories(filter) {
                 b_edit   = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
                 b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
 
-
                 var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') ';
                 li += b_edit + b_remove + '</li>';
 
                 // Выводим 1й уровень дерева
                 if (deep == 1) {
-                    $('#dir-list').append(li);
+                    dirList.append(li);
                 }
                 // Выводим все остальные уровни
                 else {
+                    var dpi = $('#d-'+pid+' ul'); // directory parent item
                     if( $('#d-'+pid+' ul').length == 0 ) {
                         $('#d-'+pid).append('<ul></ul>');
                         $('#d-'+pid+' span').addClass('has-child');
@@ -107,7 +113,9 @@ function ajaxLoadCategories(filter) {
                     $('#d-'+pid+' ul').append(li);
                 }
             }
-            $('#dir-list').treed(); // Init tree view
+
+            //dirList.treed(); // Init tree view
+            console.timeEnd('Init tree');
             $('#total').text(data.dirlist.length); // Вывод кол-ва загруженных категорий
             $('#speed-client').text((Date.now()-start_client) + ' ms');
         }

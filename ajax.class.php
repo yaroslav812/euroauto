@@ -104,9 +104,17 @@ class AjaxData
 
     /**
      * Cчитываем дерево категорий и отправляем данные на клиент
+     *
+     * @param $level - уровень вложенности
      */
-    public function getAllCategories()
-    {
+    public function getAllCategories($level = 0) {
+
+        // Формирование sql для условия уровня вложенности
+        $sql_level = '';
+        if ($this->str_is_int($level) && $level > 0) { //  проверка на SQL инъекцию
+            $sql_level = 'WHERE tree.deep + 1 <= '.$level;
+        }
+
         $sql = '
             WITH RECURSIVE tree AS
             (
@@ -136,6 +144,7 @@ class AjaxData
                     FROM
                         tree
                     JOIN category AS cat ON cat.parent_category_id = tree.id
+                    '.$sql_level.'
                     ORDER BY name
                 ) AS child
             )
@@ -145,8 +154,15 @@ class AjaxData
     }
 
 
-    public function getFilteredCategories($filter) {
+    public function getFilteredCategories($filter, $level = 0) {
         $filter = $this->db->quote('%'.$filter.'%');
+
+        // Формирование sql для условия уровня вложенности
+        $sql_level = '';
+        if ($this->str_is_int($level) && $level > 0) { //  проверка на SQL инъекцию
+            $sql_level = 'WHERE tree.deep + 1 <= '.(int)$level;
+        }
+
         $sql = '
             -- Берем все id категорий соответствующих фильтру
             WITH filter_ids AS (
@@ -191,6 +207,7 @@ class AjaxData
                     SELECT cat.id, cat.parent_category_id, cat.name, tree.deep + 1
                     FROM tree
                     JOIN category AS cat ON cat.parent_category_id = tree.id
+                    '.$sql_level.'
                 )
                 SELECT * FROM tree
             )  AS T
