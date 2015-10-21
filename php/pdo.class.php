@@ -1,6 +1,4 @@
 <?php
-require_once ('pdo.config.php');
-
 /* Singleton Database Connection Class */
 class Database
 {

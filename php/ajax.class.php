@@ -1,6 +1,4 @@
 <?php
-require ('pdo.class.php');
-
 class AjaxData
 {
     private $db;
@@ -39,14 +37,48 @@ class AjaxData
     }
 
     /**
+     * @param $id - идентификатор редактируемой категории
+     * @param $name - новое название категории
+     */
+    public function editCategory($id, $name) {
+
+        // Обработка входных параметров
+        if (!$this->str_is_int($id)) { //  проверка на число (integer)
+            echo json_encode(array('errmsg' => 'Некорректный id категории'));
+            return;
+        }
+        elseif($name == ''){
+            echo json_encode(array('errmsg' => 'Название категории не должно быть пустым'));
+            return;
+        }
+
+        $sql = 'UPDATE category SET (name) = ('.$this->db->quote($name).') WHERE id = ' . $id;
+        try {
+            $affected_rows = $this->db->exec($sql);
+            $time_work = (int)((microtime(true) - $this->start_time) * 1000);
+            echo json_encode(
+                array(
+                    'affected' => $affected_rows,
+                    'time' => $time_work,
+                    'name' => htmlspecialchars($name)
+                ), JSON_UNESCAPED_UNICODE
+            );
+        } catch (PDOException $e) {
+            echo json_encode(array('errmsg' => $e->getMessage()));
+        }
+
+    }
+
+    /**
      * Удаление категории с ее веткой дочерних подкатегорий
      *
      * @param $id - идентификатор удаляемой категории
      */
     public function removeCategory($id)
     {
-        if (!$this->str_is_int($id)) { //  проверка на SQL инъекцию
-            return 0;
+        if (!$this->str_is_int($id)) { //  проверка на число (integer)
+            echo json_encode(array('errmsg' => 'Некорректный id категории'));
+            return;
         }
         $sql = '
             DELETE FROM category WHERE id IN
@@ -71,8 +103,13 @@ class AjaxData
         try {
             $affected_rows = $this->db->exec($sql);
             $time_work = (int)((microtime(true) - $this->start_time) * 1000);
-            echo json_encode(array('affected' => $affected_rows, 'time' => $time_work));
-        } catch (Exception $e) {
+            echo json_encode(
+                array(
+                    'affected' => $affected_rows,
+                    'time' => $time_work
+                )
+            );
+        } catch (PDOException $e) {
             echo json_encode(array('errmsg' => $e->getMessage()));
         }
     }
@@ -97,7 +134,7 @@ class AjaxData
             */
             $time_work = (int)((microtime(true) - $this->start_time) * 1000);
             echo json_encode(array('time' => $time_work, 'dirlist' => $dir_array), JSON_UNESCAPED_UNICODE);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             echo json_encode(array('errmsg' => $e->getMessage()));
         }
     }

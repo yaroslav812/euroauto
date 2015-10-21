@@ -6,13 +6,55 @@ $(document).ready(function(){
         ajaxLoadCategories(filter, level);
     });
 
-    // Активация модального окна удаления
+    // Событие при активации модального окна удаления
     $('#removeModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget); // Button that triggered the modal
         var id = button.data('id'); // Extract info from data-* attributes
         var modal = $(this);
         modal.find('.modal-body').text( $('#d-'+id+' span').first().text() );
         modal.find('.modal-footer .btn-danger').attr('id-category',id);
+    });
+
+    // Событие при активации модального окна редактирования
+    $('#editModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var id = button.data('id'); // Extract info from data-* attributes
+        var modal = $(this);
+        modal.find('#editCatName').val( $('#d-'+id+' span').first().text() );
+        modal.find('.modal-footer .btn-primary').attr('id-category',id);
+    });
+
+    // Нажата кнопка редактирования категории
+    $('#editModal .btn-primary').click(function(event) {
+        var start_server = Date.now();
+        var id = event.target.getAttribute('id-category');
+
+        $('#editModal').modal('hide');
+
+        // редактируем категорию в базе
+        $.post('php/ajax.php', {
+                action: 'edit-category',
+                id: id,
+                name: $('#editCatName').val()
+            },
+            function (data) {
+                if(data.errmsg !== undefined) {
+                    alert('Error: ' + data.errmsg);
+                    return;
+                }
+                var start_client = Date.now();
+                $('#speed-server-sql').text(data.time + ' ms');
+                $('#speed-server-resp').text((Date.now()-start_server) + ' ms');
+                if (data.affected !== undefined) {
+                    console.log(data.affected + ' rows updated.');
+                    if(data.affected > 0) {
+                        // переименовываем каталог на клиенте
+                        $('#d-' + id + ' span').first().html(data.name);
+                        $('#speed-client').text((Date.now()-start_client) + ' ms');
+                    }
+                }
+            }
+        );
     });
 
     // Нажата кнопка удаления категории
@@ -23,7 +65,7 @@ $(document).ready(function(){
         $('#removeModal').modal('hide');
 
         // удаляем ветку в базе
-        $.post('/euroauto/ajax.php', {
+        $.post('php/ajax.php', {
                 action: 'remove-category',
                 id: id
             },
@@ -62,7 +104,7 @@ function ajaxLoadCategories(filter, level) {
     if(filter.length) action_name = 'get-filtered-categories';
 
     var start_server = Date.now();
-    $.post('/euroauto/ajax.php', {
+    $.post('php/ajax.php', {
             action: action_name,
             filt: filter,
             deep: level
@@ -93,7 +135,7 @@ function ajaxLoadCategories(filter, level) {
                 var name = data['dirlist'][i][2];
                 var deep = data['dirlist'][i][3];
 
-                b_edit   = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
+                b_edit   = '<a data-toggle="modal" data-target="#editModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
                 b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
 
                 var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') ';
@@ -114,7 +156,7 @@ function ajaxLoadCategories(filter, level) {
                 }
             }
 
-            //dirList.treed(); // Init tree view
+            dirList.treed(); // Init tree view
             console.timeEnd('Init tree');
             $('#total').text(data.dirlist.length); // Вывод кол-ва загруженных категорий
             $('#speed-client').text((Date.now()-start_client) + ' ms');
