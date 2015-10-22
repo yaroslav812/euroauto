@@ -139,7 +139,11 @@ function ajaxLoadCategories(filter, level) {
                 deep = data['dirlist'][i][3];
 
                 b_edit   = '<a data-toggle="modal" data-target="#editModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
-                b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
+                // При наличии уровня вложенности кнопку удаления не выводим
+                // т.к. не будет видно какие вложенные категории удалим
+                // и соответственно будут глюки в отображении кол-ва загруженных категорий
+                if(level.length && level > 0) b_remove = '';
+                else b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
                 var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') '+ b_edit + b_remove + '</li>';
 
                 // 1й уровень дерева
