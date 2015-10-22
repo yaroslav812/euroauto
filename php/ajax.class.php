@@ -239,16 +239,26 @@ class AjaxData
                 -- Cтроим дерево, из корневых отфильтрованных категорий
                 WITH RECURSIVE tree AS
                 (
-                    SELECT id, parent_category_id, name, 1 AS deep
-                    FROM category
-                    WHERE id IN (SELECT * FROM tree_root_id)
+                    SELECT root.*
+                    FROM (
+                        SELECT id, parent_category_id, name, 1 AS deep
+                        FROM category
+                        WHERE id IN (SELECT * FROM tree_root_id)
+                        ORDER BY name
+                    ) AS root
 
                     UNION ALL
 
-                    SELECT cat.id, cat.parent_category_id, cat.name, tree.deep + 1
-                    FROM tree
-                    JOIN category AS cat ON cat.parent_category_id = tree.id
-                    '.$sql_level.'
+                    SELECT child.*
+                    FROM (
+                        SELECT cat.id, cat.parent_category_id, cat.name, tree.deep + 1
+                        FROM tree
+                        JOIN category AS cat ON cat.parent_category_id = tree.id
+                        '.$sql_level.'
+                        ORDER BY
+                            cat.parent_category_id,
+                            name
+                    ) AS child
                 )
                 SELECT * FROM tree
             )  AS T

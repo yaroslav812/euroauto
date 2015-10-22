@@ -187,6 +187,7 @@ function ajaxLoadCategories(filter, level) {
             }
             else {
                 $('#dir-place').html('<strong>Нет данных</strong>');
+                $('#total').text('0');
             }
             $('#button-load-categories').prop('disabled', false);
             $('#speed-client').text((Date.now()-start_client) + ' ms');
