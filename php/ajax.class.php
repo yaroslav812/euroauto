@@ -51,7 +51,7 @@ class AjaxData
             echo json_encode(array('errmsg' => 'Название категории не должно быть пустым'));
             return;
         }
-
+        // TODO: Останется время, переделать на $pdo->prepare
         $sql = 'UPDATE category SET (name) = ('.$this->db->quote($name).') WHERE id = ' . $id;
         try {
             $affected_rows = $this->db->exec($sql);
@@ -80,6 +80,7 @@ class AjaxData
             echo json_encode(array('errmsg' => 'Некорректный id категории'));
             return;
         }
+        // TODO: Останется время, переделать на $pdo->prepare
         $sql = '
             DELETE FROM category WHERE id IN
             (
@@ -151,7 +152,7 @@ class AjaxData
         if ($this->str_is_int($level) && $level > 0) { //  проверка на SQL инъекцию
             $sql_level = 'WHERE tree.deep + 1 <= '.$level;
         }
-
+        // TODO: Останется время, переделать на $pdo->prepare
         $sql = '
             WITH RECURSIVE tree AS
             (
@@ -199,7 +200,8 @@ class AjaxData
         if ($this->str_is_int($level) && $level > 0) { //  проверка на SQL инъекцию
             $sql_level = 'WHERE tree.deep + 1 <= '.(int)$level;
         }
-
+        // TODO: Останется время, переделать на $pdo->prepare
+        // TODO: Можно добавить Full Text Search вместо ILIKE
         $sql = '
             -- Берем все id категорий соответствующих фильтру
             WITH filter_ids AS (
@@ -252,7 +254,3 @@ class AjaxData
         $this->runSQL_and_SendJsonTree($sql);
     }
 }
-
-
-
-

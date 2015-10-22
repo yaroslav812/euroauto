@@ -29,7 +29,7 @@ class Database
             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            die("PDO CONNECTION ERROR: " . $e->getMessage());
+            die("DB connection error: " . $e->getMessage() . '<br>Проверьте настройки соединения в db_config.php');
         }
         return self::$pdo;
     }

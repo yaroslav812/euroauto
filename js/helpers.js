@@ -98,7 +98,7 @@ $(document).ready(function(){
 });
 
 function ajaxLoadCategories(filter, level) {
-    $('#dir-place').html('Loading...');
+    $('#dir-place').html('Loading... <br>Подождите пожалуйста !<br>Загружается дерево категорий');
 
     var action_name = 'get-all-categories';
     if(filter.length) action_name = 'get-filtered-categories';
