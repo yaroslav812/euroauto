@@ -1,6 +1,7 @@
 $(document).ready(function(){
     // Вешаем событие на кнопку загрузки списка категорий
     $('#button-load-categories').click(function() {
+        $(this).prop('disabled', true);
         var filter = $('#filterName').val();
         var level = $('#nestingLevel').val();
         ajaxLoadCategories(filter, level);
@@ -98,7 +99,7 @@ $(document).ready(function(){
 });
 
 function ajaxLoadCategories(filter, level) {
-    $('#dir-place').html('Loading... <br>Подождите пожалуйста !<br>Загружается дерево категорий');
+    $('#dir-place').html('Loading...');
 
     var action_name = 'get-all-categories';
     if(filter.length) action_name = 'get-filtered-categories';
@@ -126,39 +127,64 @@ function ajaxLoadCategories(filter, level) {
              data[i][3] => deep (глубина)
              */
             $('#dir-place').html('<ul id="dir-list"></ul>');
-            var dirList = $('#dir-list'); // directory list item
-           //  var rootFlag = 0;
-            console.time('Init tree');
+            var rootList = $('#dir-list'); // directory list item
+            var last_pid = 0;
+            var li_html = '';
+
+            var id, pid, name, deep;
             for (var i=0; i<count; i++){
-                var id   = data['dirlist'][i][0];
-                var pid  = data['dirlist'][i][1];
-                var name = data['dirlist'][i][2];
-                var deep = data['dirlist'][i][3];
+                id   = data['dirlist'][i][0];
+                pid  = data['dirlist'][i][1];
+                name = data['dirlist'][i][2];
+                deep = data['dirlist'][i][3];
 
                 b_edit   = '<a data-toggle="modal" data-target="#editModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
                 b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
+                var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') '+ b_edit + b_remove + '</li>';
 
-                var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') ';
-                li += b_edit + b_remove + '</li>';
-
-                // Выводим 1й уровень дерева
+                // 1й уровень дерева
                 if (deep == 1) {
-                    dirList.append(li);
+                    li_html += li;
                 }
-                // Выводим все остальные уровни
+                // Все остальные уровни
                 else {
-                    var dpi = $('#d-'+pid+' ul'); // directory parent item
-                    if( $('#d-'+pid+' ul').length == 0 ) {
+                    // При переходе к следующей категории, выводим накопленный html
+                    if(last_pid != pid){
+                        if(last_pid != 0){
+                            $('#d-'+last_pid+' ul').append(li_html);// Добавляем вложенные категории в родительскую
+                        }
+                        else {
+                            rootList.append(li_html);// Добавляем корневые категории
+                        }
+                        li_html = '';
+
+                        // Задаем атрибуты для новой вложенной категории  <ul> 1й вход
                         $('#d-'+pid).append('<ul></ul>');
                         $('#d-'+pid+' span').addClass('has-child');
+                        last_pid = pid;
                     }
-                    $('#d-'+pid+' ul').append(li);
+                    li_html += li;
                 }
             }
+            // Воводим последний накопленный html самой глубокой категории
+            if(last_pid != 0){
+                $('#d-'+last_pid+' ul').append(li_html);
+            }
+            else {
+                rootList.append(li_html);
+            }
+            console.time('Init tree view');
+            rootList.treed(); // Init tree view
+            console.timeEnd('Init tree view');
 
-            dirList.treed(); // Init tree view
-            console.timeEnd('Init tree');
-            $('#total').text(data.dirlist.length); // Вывод кол-ва загруженных категорий
+            // Вывод кол-ва загруженных категорий
+            if(data.dirlist.length) {
+                $('#total').text(data.dirlist.length);
+            }
+            else {
+                $('#dir-place').html('<strong>Нет данных</strong>');
+            }
+            $('#button-load-categories').prop('disabled', false);
             $('#speed-client').text((Date.now()-start_client) + ' ms');
         }
     );
@@ -166,20 +192,17 @@ function ajaxLoadCategories(filter, level) {
 
 $.fn.extend({
     treed: function () {
-        var openedClass = 'glyphicon-chevron-right';
-        var closedClass = 'glyphicon-chevron-down';
-
         //initialize each of the top levels
         var tree = $(this);
         tree.addClass("tree");
         tree.find('li').has("ul").each(function () {
             var branch = $(this); //li with children ul
-            branch.prepend("<i class='indicator glyphicon " + closedClass + "'></i>");
+            branch.prepend("<i class='indicator glyphicon glyphicon-chevron-down'></i>");
             branch.addClass('branch');
             branch.on('click', function (e) {
                 if (this == e.target) {
                     var icon = $(this).children('i:first');
-                    icon.toggleClass(openedClass + " " + closedClass);
+                    icon.toggleClass('glyphicon-chevron-right glyphicon-chevron-down');
                     $(this).children().children().toggle();
                 }
             });

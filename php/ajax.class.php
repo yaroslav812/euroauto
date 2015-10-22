@@ -167,7 +167,8 @@ class AjaxData
                         category
                     WHERE
                         parent_category_id IS NULL
-                    ORDER BY name
+                    ORDER BY
+                        name
                 ) AS root
 
                 UNION ALL
@@ -183,7 +184,9 @@ class AjaxData
                         tree
                     JOIN category AS cat ON cat.parent_category_id = tree.id
                     '.$sql_level.'
-                    ORDER BY name
+                    ORDER BY
+                        cat.parent_category_id,
+                        name
                 ) AS child
             )
             SELECT * FROM tree;
@@ -200,7 +203,6 @@ class AjaxData
         if ($this->str_is_int($level) && $level > 0) { //  проверка на SQL инъекцию
             $sql_level = 'WHERE tree.deep + 1 <= '.(int)$level;
         }
-        // TODO: Останется время, переделать на $pdo->prepare
         // TODO: Можно добавить Full Text Search вместо ILIKE
         $sql = '
             -- Берем все id категорий соответствующих фильтру

@@ -17,10 +17,14 @@ if($action == 'load-database') {
     }
 }
 else {
-    echo 'Соединение с базой установлено !!! <br>Выберите действие:<br>';
-    echo '<a href="index.php?action=load-database">Загрузить данные из файла: <b>db_data.sql</b></a><br><br>';
-    echo '<a href="categories.html">Перейти на страницу задания с деревом категорий</a>';
-}
-
-
-
+?>
+Ура !!! Соединение с базой установлено...<br><br>Выберите действие:
+<ol>
+  <li>
+    <a href="index.php?action=load-database">Загрузить данные из файла: db_data.sql</a> - DROP/CREATE TABLE category + INSERT(data)
+  </li>
+  <li>
+    <a href="categories.html">Перейти на страницу задания с деревом категорий</a>
+  </li>
+</ol>
+<?php } ?>
