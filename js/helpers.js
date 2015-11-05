@@ -100,11 +100,11 @@ $(document).ready(function(){
 
 function ajaxLoadCategories(filter, level) {
     $('#dir-place').html('Loading...');
-
     var action_name = 'get-all-categories';
     if(filter.length) action_name = 'get-filtered-categories';
 
     var start_server = Date.now();
+    var start_client;
     $.post('php/ajax.php', {
             action: action_name,
             filt: filter,
@@ -117,7 +117,7 @@ function ajaxLoadCategories(filter, level) {
             }
             $('#speed-server-sql').text(data.time + ' ms');
             $('#speed-server-resp').text((Date.now()-start_server) + ' ms');
-            var start_client = Date.now();
+            start_client = Date.now();
             var count = data.dirlist.length;
             var b_edit, b_remove;
             /*
@@ -139,10 +139,10 @@ function ajaxLoadCategories(filter, level) {
                 deep = data['dirlist'][i][3];
 
                 b_edit   = '<a data-toggle="modal" data-target="#editModal" data-id="'+id+'" href="#" title="edit" class="glyphicon glyphicon-pencil" aria-hidden="true"></a> ';
-                // При наличии уровня вложенности кнопку удаления не выводим
+                // При наличии фильтрации или уровня вложенности кнопку удаления лучше не выводить
                 // т.к. не будет видно какие вложенные категории удалим
                 // и соответственно будут глюки в отображении кол-ва загруженных категорий
-                if(level.length && level > 0) b_remove = '';
+                if((level.length && level > 0) || filter.length) b_remove = '';
                 else b_remove = '<a data-toggle="modal" data-target="#removeModal" data-id="'+id+'" href="#" title="remove" class="glyphicon glyphicon-remove" aria-hidden="true"></a>';
                 var li = '<li id="d-'+id+'"><span>'+name+'</span> ('+deep+') '+ b_edit + b_remove + '</li>';
 
@@ -170,7 +170,7 @@ function ajaxLoadCategories(filter, level) {
                     li_html += li;
                 }
             }
-            // Воводим последний накопленный html самой глубокой категории
+            // Выводим последний накопленный html самой глубокой категории
             if(last_pid != 0){
                 $('#d-'+last_pid+' ul').append(li_html);
             }
